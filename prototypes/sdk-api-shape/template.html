@@ -1,0 +1,58 @@
+<title>TrueSeal SDK API Shape</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: a reference sheet. One row per API area: notes on top, then the three SDKs in columns (stacked on phones). */
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#18202b; --muted:#5b6675; --line:#dde2e8;
+  --accent:#1f5f8b; --code-bg:#f0f3f6; --comment:#7a8594; --warn:#9a5b00; --warn-bg:#fdf3e2;
+  --display:"Fraunces",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --panel:#161d25; --ink:#e3e8ee; --muted:#9aa6b4; --line:#27313c;
+  --accent:#7fb6de; --code-bg:#111820; --comment:#6f7c8b; --warn:#f0b35a; --warn-bg:#2a2112; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#161d25; --ink:#e3e8ee; --muted:#9aa6b4; --line:#27313c;
+  --accent:#7fb6de; --code-bg:#111820; --comment:#6f7c8b; --warn:#f0b35a; --warn-bg:#2a2112; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:600 clamp(26px,4vw,38px)/1.1 var(--display);margin:0;text-wrap:balance}
+h2{font:600 18px/1.3 var(--body);margin:0;text-wrap:balance}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+.lede{max-width:70ch;color:var(--muted);margin:10px 0 0}
+code{font-family:var(--mono);font-size:.9em}
+.react{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+.react h2{margin-bottom:10px}
+.react ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px 24px}
+.react li{display:flex;flex-direction:column;gap:2px}
+.react li span{color:var(--muted);font-size:14px}
+nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+nav a{color:var(--accent);text-decoration:none}
+nav a:hover,nav a:focus-visible{text-decoration:underline}
+.area{display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid var(--line);scroll-margin-top:12px}
+.area header{display:flex;flex-direction:column;gap:6px}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:6px 28px;font-size:14px}
+.notes p{margin:0;max-width:75ch}
+.today{color:var(--muted)}
+.prop::before{content:"Proposed · ";font-weight:600;color:var(--accent)}
+.today::before{content:"Now · ";font-weight:600}
+.provisional .prop{background:var(--warn-bg);color:var(--ink);padding:6px 10px;border-radius:4px}
+.provisional .prop::before{color:var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px}
+.col{margin:0;min-width:0;display:flex;flex-direction:column}
+figcaption{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 0 4px 2px}
+pre{margin:0;background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:12px 14px;overflow-x:auto;flex:1}
+pre code{font-size:12.5px;line-height:1.55;white-space:pre}
+.c{color:var(--comment)}
+@media (max-width:420px){.grid{grid-template-columns:1fr}}
+</style>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Prototype · trueseal-roadmap#12 · throwaway</p>
+    <h1>One SDK API across Swift, Kotlin and TypeScript</h1>
+    <p class="lede">A sketch, not compiled code. Every area of the public API appears side by side, with a note on how it differs from today's SDKs. Each platform stays idiomatic, but the names, cases and behaviour match. It builds on the delivery, pairing, size, versioning and membership decisions (ADR-0022 to ADR-0027).</p>
+  </header>
+  <section class="react"><h2>Choices to react to</h2><ul>{{REACT}}</ul></section>
+  <nav aria-label="API areas">{{NAV}}</nav>
+  {{ROWS}}
+</div>

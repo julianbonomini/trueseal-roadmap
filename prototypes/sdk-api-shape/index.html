@@ -1,0 +1,351 @@
+<title>TrueSeal SDK API Shape</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: a reference sheet. One row per API area: notes on top, then the three SDKs in columns (stacked on phones). */
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#18202b; --muted:#5b6675; --line:#dde2e8;
+  --accent:#1f5f8b; --code-bg:#f0f3f6; --comment:#7a8594; --warn:#9a5b00; --warn-bg:#fdf3e2;
+  --display:"Fraunces",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --panel:#161d25; --ink:#e3e8ee; --muted:#9aa6b4; --line:#27313c;
+  --accent:#7fb6de; --code-bg:#111820; --comment:#6f7c8b; --warn:#f0b35a; --warn-bg:#2a2112; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#161d25; --ink:#e3e8ee; --muted:#9aa6b4; --line:#27313c;
+  --accent:#7fb6de; --code-bg:#111820; --comment:#6f7c8b; --warn:#f0b35a; --warn-bg:#2a2112; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:600 clamp(26px,4vw,38px)/1.1 var(--display);margin:0;text-wrap:balance}
+h2{font:600 18px/1.3 var(--body);margin:0;text-wrap:balance}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+.lede{max-width:70ch;color:var(--muted);margin:10px 0 0}
+code{font-family:var(--mono);font-size:.9em}
+.react{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+.react h2{margin-bottom:10px}
+.react ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px 24px}
+.react li{display:flex;flex-direction:column;gap:2px}
+.react li span{color:var(--muted);font-size:14px}
+nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+nav a{color:var(--accent);text-decoration:none}
+nav a:hover,nav a:focus-visible{text-decoration:underline}
+.area{display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid var(--line);scroll-margin-top:12px}
+.area header{display:flex;flex-direction:column;gap:6px}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:6px 28px;font-size:14px}
+.notes p{margin:0;max-width:75ch}
+.today{color:var(--muted)}
+.prop::before{content:"Proposed · ";font-weight:600;color:var(--accent)}
+.today::before{content:"Now · ";font-weight:600}
+.provisional .prop{background:var(--warn-bg);color:var(--ink);padding:6px 10px;border-radius:4px}
+.provisional .prop::before{color:var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px}
+.col{margin:0;min-width:0;display:flex;flex-direction:column}
+figcaption{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 0 4px 2px}
+pre{margin:0;background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:12px 14px;overflow-x:auto;flex:1}
+pre code{font-size:12.5px;line-height:1.55;white-space:pre}
+.c{color:var(--comment)}
+@media (max-width:420px){.grid{grid-template-columns:1fr}}
+</style>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Prototype · trueseal-roadmap#12 · throwaway</p>
+    <h1>One SDK API across Swift, Kotlin and TypeScript</h1>
+    <p class="lede">A sketch, not compiled code. Every area of the public API appears side by side, with a note on how it differs from today's SDKs. Each platform stays idiomatic, but the names, cases and behaviour match. It builds on the delivery, pairing, size, versioning and membership decisions (ADR-0022 to ADR-0027).</p>
+  </header>
+  <section class="react"><h2>Choices to react to</h2><ul><li><strong>Entry type is <code>TrueSeal</code></strong><span>It replaces <code>TruesealSyncClient</code>, and the brand is written <em>TrueSeal</em> everywhere. Package names belong to the distribution decision.</span></li><li><strong>One relay address string</strong><span>It holds the key, the host and both ports, and the relay CLI prints it. This fixes the Swift port bug by construction.</span></li><li><strong>Handlers, not streams</strong><span><code>onMessage</code>, <code>onEvent</code> and <code>onDeliveryIssue</code> are the same in every SDK. Only state uses platform-native observation.</span></li><li><strong>No reject</strong><span>An unaccepted join request just expires when the window closes.</span></li><li><strong>The object outlives the group</strong><span>After removal, leave or destroy, the same <code>TrueSeal</code> object is back to <code>notJoined</code> with a fresh identity and can pair again.</span></li><li><strong><code>members</code> excludes you</strong><span><code>me</code> is separate, as today.</span></li></ul></section>
+  <nav aria-label="API areas"><a href="#setup">Setup and relay address</a><a href="#lifecycle">Lifecycle</a><a href="#receive">Receiving messages</a><a href="#send">Sending</a><a href="#status">Status, identity and connection</a><a href="#admit">Pairing: admitting a device</a><a href="#join">Pairing: joining</a><a href="#membership">Members, remove and leave</a><a href="#destroy">Destroy Group</a><a href="#events">Events</a><a href="#issues">Delivery issues</a><a href="#errors">Errors</a><a href="#version">Version and limits</a></nav>
+  <section class="area" id="setup">
+  <header><h2>Setup and relay address</h2>
+    <div class="notes"><p class="today">Today: Swift takes a <code>URL</code> and silently drops its port, while Kotlin and TS take a bare host. The key is raw bytes, and the core hardcodes ports 7700 and 7701.</p><p class="prop">One <code>RelayAddress</code> everywhere, parsed from one pasteable string that <code>trueseal-relay address</code> would print: <code>trueseal://&lt;key hex&gt;@host[:receivePort][?push=port]</code>. There's also a typed form. <code>open()</code> is async in all three SDKs.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code>import TrueSealSync
+
+let relay = try RelayAddress(&quot;trueseal://9f3ac1…e07b@relay.example.com&quot;)
+<span class="c">// Same address, typed form. The ports default to 7700 (receive) and 7701 (push).</span>
+let sameRelay = RelayAddress(host: &quot;relay.example.com&quot;,
+                             publicKey: relayKeyHex,
+                             receivePort: 7700, pushPort: 7701)
+
+let trueseal = try await TrueSeal.open(
+    relay: relay,
+    storage: .applicationSupport,          <span class="c">// or .directory(URL)</span>
+    namespace: &quot;default&quot;,                  <span class="c">// optional</span>
+    maxPayloadBytes: nil                   <span class="c">// optional: lower than 61_440 only</span>
+)
+<span class="c">// open() returns straight away. It connects in the background; send() works at once.</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>import dev.trueseal.sync.*
+
+val relay = RelayAddress.parse(&quot;trueseal://9f3ac1…e07b@relay.example.com&quot;)
+<span class="c">// Same address, typed form. The ports default to 7700 (receive) and 7701 (push).</span>
+val sameRelay = RelayAddress(host = &quot;relay.example.com&quot;,
+                             publicKey = relayKeyHex,
+                             receivePort = 7700, pushPort = 7701)
+
+val trueseal = TrueSeal.open(                   <span class="c">// suspend</span>
+    relay = relay,
+    storage = Storage.android(context),         <span class="c">// or Storage.directory(File)</span>
+    namespace = &quot;default&quot;,                      <span class="c">// optional</span>
+    maxPayloadBytes = null,                     <span class="c">// optional: lower than 61_440 only</span>
+)
+<span class="c">// open() returns straight away. It connects in the background; send() works at once.</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>import { TrueSeal, RelayAddress, TrueSealError } from &quot;@trueseal/sync&quot;;
+
+const relay = RelayAddress.parse(&quot;trueseal://9f3ac1…e07b@relay.example.com&quot;);
+<span class="c">// Same address, typed form. The ports default to 7700 (receive) and 7701 (push).</span>
+const sameRelay = new RelayAddress({ host: &quot;relay.example.com&quot;,
+                                     publicKey: relayKeyHex,
+                                     receivePort: 7700, pushPort: 7701 });
+
+const trueseal = await TrueSeal.open({
+  relay,                          <span class="c">// a RelayAddress or the string itself</span>
+  storageDir: &quot;~/.trueseal&quot;,      <span class="c">// optional</span>
+  namespace: &quot;default&quot;,           <span class="c">// optional</span>
+  maxPayloadBytes: undefined,     <span class="c">// optional: lower than 61_440 only</span>
+});
+<span class="c">// open() returns straight away. It connects in the background; send() works at once.</span></code></pre></figure></div></section>
+<section class="area" id="lifecycle">
+  <header><h2>Lifecycle</h2>
+    <div class="notes"><p class="today">Today: Swift has no teardown, TS <code>dispose()</code> only removes listeners, and Kotlin <code>close()</code> tears down the session.</p><p class="prop"><code>close()</code> in all three. The outbox and Session State persist; the next <code>open()</code> resumes.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code>await trueseal.close()      <span class="c">// stops the connection and handlers. The outbox persists.</span>
+<span class="c">// After close(), every call throws TrueSealError.closed.</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>trueseal.close()            <span class="c">// Closeable. Stops the connection and handlers. The outbox persists.</span>
+<span class="c">// After close(), every call throws TrueSealException.Closed.</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>await trueseal.close();         <span class="c">// also: await using trueseal = await TrueSeal.open(…)</span>
+<span class="c">// After close(), every call rejects with TrueSealError code &quot;CLOSED&quot;.</span></code></pre></figure></div></section>
+<section class="area" id="receive">
+  <header><h2>Receiving messages</h2>
+    <div class="notes"><p class="today">Today: streams and EventEmitters fire and forget, and the relay ack goes out before the app has seen the message.</p><p class="prop">One awaited handler (ADR-0026). Registering it starts receiving, and returning from it acks the message. <code>message.from</code> is a <code>Member</code>, so it matches <code>members</code>. Today TS's sender id doesn't.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code><span class="c">// Registering the message handler starts receiving. There is exactly one handler.</span>
+<span class="c">// The handler is awaited: returning acks the message; throwing retries it (5 tries).</span>
+let sub = try trueseal.onMessage { message in
+    try await db.save(message.body, id: message.id)   <span class="c">// Message.body: Data</span>
+    print(&quot;from \(message.from.name)&quot;)                <span class="c">// Message.from: Member</span>
+}
+sub.cancel()                <span class="c">// pauses receiving until a handler is registered again</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code><span class="c">// Registering the message handler starts receiving. There is exactly one handler.</span>
+<span class="c">// The handler is awaited: returning acks the message; throwing retries it (5 tries).</span>
+val sub = trueseal.onMessage { message -&gt;     <span class="c">// suspend (Message) -&gt; Unit</span>
+    db.save(message.body, message.id)          <span class="c">// Message.body: ByteArray</span>
+    println(&quot;from ${message.from.name}&quot;)       <span class="c">// Message.from: Member</span>
+}
+sub.cancel()                <span class="c">// pauses receiving until a handler is registered again</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code><span class="c">// Registering the message handler starts receiving. There is exactly one handler.</span>
+<span class="c">// The handler is awaited: resolving acks the message; rejecting retries it (5 tries).</span>
+const unsubscribe = trueseal.onMessage(async (message) =&gt; {
+  await db.save(message.body, message.id);   <span class="c">// message.body: Uint8Array</span>
+  console.log(`from ${message.from.name}`);  <span class="c">// message.from: Member</span>
+});
+unsubscribe();              <span class="c">// pauses receiving until a handler is registered again</span></code></pre></figure></div></section>
+<section class="area" id="send">
+  <header><h2>Sending</h2>
+    <div class="notes"><p class="today">Today: <code>publish</code> (Swift and Kotlin; Kotlin's is synchronous) versus <code>send</code> (TS). None of them return anything.</p><p class="prop"><code>send</code> everywhere. It returns the <code>MessageId</code>, so a later <code>sendFailed</code> can be matched to it. The <code>publish(text:)</code> helpers are dropped.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code>let id: MessageID = try await trueseal.send(Data(&quot;hello&quot;.utf8))
+<span class="c">// Returns once the message is in the durable outbox, never after delivery.</span>
+<span class="c">// Throws .payloadTooLarge(max:) at once for bodies over the limit.</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>val id: MessageId = trueseal.send(&quot;hello&quot;.encodeToByteArray())   <span class="c">// suspend</span>
+<span class="c">// Returns once the message is in the durable outbox, never after delivery.</span>
+<span class="c">// Throws PayloadTooLarge(max) at once for bodies over the limit.</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>const id: MessageId = await trueseal.send(new TextEncoder().encode(&quot;hello&quot;));
+<span class="c">// Resolves once the message is in the durable outbox, never after delivery.</span>
+<span class="c">// Rejects with &quot;PAYLOAD_TOO_LARGE&quot; at once for bodies over the limit.</span></code></pre></figure></div></section>
+<section class="area" id="status">
+  <header><h2>Status, identity and connection</h2>
+    <div class="notes"><p class="today">Today: <code>localNodeId</code> and <code>localDeviceName</code>, a boolean connection state, and no join state.</p><p class="prop">New join status (ADR-0023, ADR-0027). <code>me</code> replaces the two local fields. The connection can report <code>relayVersionUnsupported</code> (ADR-0022). Each SDK exposes state the way its UI framework expects: Swift <code>@Observable</code>, Kotlin <code>StateFlow</code>, TS getters plus events.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code><span class="c">// TrueSeal is @Observable, so SwiftUI views re-render when these change.</span>
+trueseal.status       <span class="c">// .notJoined | .pendingJoin | .member | .leaving</span>
+trueseal.me            <span class="c">// Member(id:, name:) for this device</span>
+trueseal.members       <span class="c">// [Member]: everyone else in the group</span>
+trueseal.connection    <span class="c">// .connecting | .connected | .disconnected</span>
+                       <span class="c">// | .relayVersionUnsupported(min:max:)</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>trueseal.status        <span class="c">// StateFlow&lt;GroupStatus&gt;: NotJoined | PendingJoin | Member | Leaving</span>
+trueseal.me            <span class="c">// Member(id, name) for this device</span>
+trueseal.members       <span class="c">// StateFlow&lt;List&lt;Member&gt;&gt;: everyone else in the group</span>
+trueseal.connection    <span class="c">// StateFlow&lt;Connection&gt;: Connecting | Connected | Disconnected</span>
+                       <span class="c">//   | RelayVersionUnsupported(min, max)</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>trueseal.status;       <span class="c">// &quot;notJoined&quot; | &quot;pendingJoin&quot; | &quot;member&quot; | &quot;leaving&quot;</span>
+trueseal.me;           <span class="c">// { id, name } for this device</span>
+trueseal.members;      <span class="c">// Member[]: everyone else in the group</span>
+trueseal.connection;   <span class="c">// { state: &quot;connecting&quot; | &quot;connected&quot; | &quot;disconnected&quot; }</span>
+                       <span class="c">// | { state: &quot;relayVersionUnsupported&quot;, min, max }</span></code></pre></figure></div></section>
+<section class="area" id="admit">
+  <header><h2>Pairing: admitting a device</h2>
+    <div class="notes"><p class="today">Today: <code>generatePairingToken</code> or <code>pairingToken</code>. <code>acceptPairingRequest</code> returns a Bool that Swift and Kotlin throw away.</p><p class="prop"><code>startPairing()</code> and <code>accept(request)</code>. <code>accept</code> throws <code>pairingClosed</code> or <code>groupFull</code> instead of returning false. There is no reject, because the protocol sends no decline (ADR-0023).</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code><span class="c">// On a device that&#x27;s already in the group, or that starts a new one:</span>
+let token: String = try trueseal.startPairing()    <span class="c">// show as QR / copyable text</span>
+<span class="c">// Join requests arrive as events (see Events):</span>
+<span class="c">//   case .joinRequest(let request)  // JoinRequest(id:, name:)</span>
+try await trueseal.accept(request)  <span class="c">// single use: the window closes after it</span>
+trueseal.cancelPairing()            <span class="c">// closes the window; unaccepted requests vanish</span>
+<span class="c">// There is no reject: a request you don&#x27;t accept never gets an answer.</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code><span class="c">// On a device that&#x27;s already in the group, or that starts a new one:</span>
+val token: String = trueseal.startPairing()   <span class="c">// show as QR / copyable text</span>
+<span class="c">// Join requests arrive as events (see Events):</span>
+<span class="c">//   is TrueSealEvent.JoinRequest -&gt; event.request   // JoinRequest(id, name)</span>
+trueseal.accept(request)            <span class="c">// suspend; single use: the window closes after it</span>
+trueseal.cancelPairing()            <span class="c">// closes the window; unaccepted requests vanish</span>
+<span class="c">// There is no reject: a request you don&#x27;t accept never gets an answer.</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code><span class="c">// On a device that&#x27;s already in the group, or that starts a new one:</span>
+const token: string = trueseal.startPairing();   <span class="c">// show as QR / copyable text</span>
+<span class="c">// Join requests arrive as events (see Events):</span>
+<span class="c">//   { type: &quot;joinRequest&quot;, request: { id, name } }</span>
+await trueseal.accept(request);  <span class="c">// single use: the window closes after it</span>
+trueseal.cancelPairing();        <span class="c">// closes the window; unaccepted requests vanish</span>
+<span class="c">// There is no reject: a request you don&#x27;t accept never gets an answer.</span></code></pre></figure></div></section>
+<section class="area" id="join">
+  <header><h2>Pairing: joining</h2>
+    <div class="notes"><p class="today">Today: <code>joinGroup(token)</code>, with no way to cancel and no pending state.</p><p class="prop"><code>join(token)</code> and <code>cancelJoin()</code>. The Pending Join is visible in <code>status</code> and survives restarts.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code><span class="c">// On the new device:</span>
+try await trueseal.join(token)   <span class="c">// status → .pendingJoin (this survives restarts)</span>
+trueseal.cancelJoin()            <span class="c">// status → .notJoined</span>
+<span class="c">// Once admitted: .statusChanged(.member, reason: .joined)</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code><span class="c">// On the new device:</span>
+trueseal.join(token)           <span class="c">// suspend; status → PendingJoin (this survives restarts)</span>
+trueseal.cancelJoin()          <span class="c">// status → NotJoined</span>
+<span class="c">// Once admitted: StatusChanged(Member, reason = Joined)</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code><span class="c">// On the new device:</span>
+await trueseal.join(token);      <span class="c">// status → &quot;pendingJoin&quot; (this survives restarts)</span>
+trueseal.cancelJoin();           <span class="c">// status → &quot;notJoined&quot;</span>
+<span class="c">// Once admitted: { type: &quot;statusChanged&quot;, status: &quot;member&quot;, reason: &quot;joined&quot; }</span></code></pre></figure></div></section>
+<section class="area" id="membership">
+  <header><h2>Members, remove and leave</h2>
+    <div class="notes"><p class="today">Today: <code>removeMember</code> takes a member object in Swift and Kotlin but an id string in TS. There is no leave, and wiping after removal is left to the app.</p><p class="prop"><code>remove(memberId)</code> and <code>leave()</code> everywhere. On removal or leave the library wipes the device and gives it a fresh identity (ADR-0027). The same object stays usable.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code>try await trueseal.remove(member.id)   <span class="c">// any member may remove any other member</span>
+try await trueseal.leave()             <span class="c">// status → .leaving, then .notJoined(.left)</span>
+<span class="c">// A removed or leaving device gets wiped and a fresh identity automatically.</span>
+<span class="c">// The same TrueSeal object stays usable and can pair again.</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>trueseal.remove(member.id)     <span class="c">// suspend; any member may remove any other member</span>
+trueseal.leave()               <span class="c">// suspend; status → Leaving, then NotJoined(Left)</span>
+<span class="c">// A removed or leaving device gets wiped and a fresh identity automatically.</span>
+<span class="c">// The same TrueSeal object stays usable and can pair again.</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>await trueseal.remove(member.id);  <span class="c">// any member may remove any other member</span>
+await trueseal.leave();            <span class="c">// status → &quot;leaving&quot;, then &quot;notJoined&quot; (left)</span>
+<span class="c">// A removed or leaving device gets wiped and a fresh identity automatically.</span>
+<span class="c">// The same TrueSeal object stays usable and can pair again.</span></code></pre></figure></div></section>
+<section class="area provisional" id="destroy">
+  <header><h2>Destroy Group</h2>
+    <div class="notes"><p class="today">Today: <code>destroyGroup()</code> wipes the device and leaves the session unusable.</p><p class="prop"><strong>Provisional.</strong> The name stays. What happens afterwards depends on the Destroy Group decision (trueseal-roadmap#10). The sketch assumes it behaves like removal: back to <code>notJoined</code> with a fresh identity.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code><span class="c">// PROVISIONAL: semantics are being decided in trueseal-roadmap#10.</span>
+try await trueseal.destroyGroup()      <span class="c">// → .statusChanged(.notJoined, reason: .destroyed)</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code><span class="c">// PROVISIONAL: semantics are being decided in trueseal-roadmap#10.</span>
+trueseal.destroyGroup()        <span class="c">// → StatusChanged(NotJoined, reason = Destroyed)</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code><span class="c">// PROVISIONAL: semantics are being decided in trueseal-roadmap#10.</span>
+await trueseal.destroyGroup();     <span class="c">// → statusChanged, status &quot;notJoined&quot;, reason &quot;destroyed&quot;</span></code></pre></figure></div></section>
+<section class="area" id="events">
+  <header><h2>Events</h2>
+    <div class="notes"><p class="today">Today: Swift has 4 <code>AsyncStream</code>s, Kotlin 4 <code>Flow</code>s, and TS 7 string-named events.</p><p class="prop">One event type, handled with an exhaustive <code>switch</code> or <code>when</code>. Member changes arrive as the whole list, since ADR-0027 says to render the list and not trust individual joined and left events.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code>let events = trueseal.onEvent { event in       <span class="c">// any number of listeners</span>
+    switch event {
+    case .statusChanged(let status, let reason): <span class="c">// reason: .created | .joined</span>
+        break                                    <span class="c">//   | .left | .removed | .destroyed</span>
+    case .membersChanged(let members):           <span class="c">// render the list; don&#x27;t diff events</span>
+        break
+    case .joinRequest(let request):
+        break
+    case .connectionChanged(let connection):
+        break
+    case .admissionDropped(let name, .groupFull): <span class="c">// a re-applied admission hit 32</span>
+        break
+    }
+}
+<span class="c">// Events raised before the first listener is registered are buffered and replayed.</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>val events = trueseal.onEvent { event -&gt;         <span class="c">// any number of listeners</span>
+    when (event) {
+        is TrueSealEvent.StatusChanged -&gt; {}      <span class="c">// reason: Created | Joined</span>
+                                                  <span class="c">//   | Left | Removed | Destroyed</span>
+        is TrueSealEvent.MembersChanged -&gt; {}     <span class="c">// render the list; don&#x27;t diff events</span>
+        is TrueSealEvent.JoinRequest -&gt; {}
+        is TrueSealEvent.ConnectionChanged -&gt; {}
+        is TrueSealEvent.AdmissionDropped -&gt; {}   <span class="c">// a re-applied admission hit 32</span>
+    }
+}
+<span class="c">// Events raised before the first listener is registered are buffered and replayed.</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>const offEvents = trueseal.onEvent((event) =&gt; {  <span class="c">// any number of listeners</span>
+  switch (event.type) {
+    case &quot;statusChanged&quot;:      <span class="c">// event.reason: &quot;created&quot; | &quot;joined&quot;</span>
+      break;                   <span class="c">//   | &quot;left&quot; | &quot;removed&quot; | &quot;destroyed&quot;</span>
+    case &quot;membersChanged&quot;:     <span class="c">// render event.members; don&#x27;t diff events</span>
+      break;
+    case &quot;joinRequest&quot;:
+      break;
+    case &quot;connectionChanged&quot;:
+      break;
+    case &quot;admissionDropped&quot;:   <span class="c">// a re-applied admission hit 32</span>
+      break;
+  }
+});
+<span class="c">// Events raised before the first listener is registered are buffered and replayed.</span></code></pre></figure></div></section>
+<section class="area" id="issues">
+  <header><h2>Delivery issues</h2>
+    <div class="notes"><p class="today">Today: nothing. Failures are silent.</p><p class="prop">One optional stream with the same six cases in every SDK (ADR-0026). Each case carries a Message ID when one exists.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code>let issues = trueseal.onDeliveryIssue { issue in   <span class="c">// optional. Ignoring it is safe.</span>
+    switch issue {
+    case .unreadable:                          <span class="c">// couldn&#x27;t decrypt, verify or parse</span>
+        break
+    case .unauthorized:                        <span class="c">// not from a current member</span>
+        break
+    case .heldForUpgrade(let version):         <span class="c">// newer End-to-End Version; kept on relay</span>
+        break
+    case .handlerGaveUp(let id, let error):    <span class="c">// your handler threw 5 times</span>
+        break
+    case .sendFailed(let id, let reason):      <span class="c">// .tooLarge | .malformed | .expired</span>
+        break
+    case .undeliverableAfterUpgrade(let ids):  <span class="c">// outbox sealed under an old version</span>
+        break
+    }
+}</code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>val issues = trueseal.onDeliveryIssue { issue -&gt;  <span class="c">// optional. Ignoring it is safe.</span>
+    when (issue) {
+        is DeliveryIssue.Unreadable -&gt; {}                 <span class="c">// couldn&#x27;t decrypt, verify or parse</span>
+        is DeliveryIssue.Unauthorized -&gt; {}               <span class="c">// not from a current member</span>
+        is DeliveryIssue.HeldForUpgrade -&gt; {}             <span class="c">// newer End-to-End Version</span>
+        is DeliveryIssue.HandlerGaveUp -&gt; {}              <span class="c">// (id, error): threw 5 times</span>
+        is DeliveryIssue.SendFailed -&gt; {}                 <span class="c">// (id, reason): TooLarge | Malformed | Expired</span>
+        is DeliveryIssue.UndeliverableAfterUpgrade -&gt; {}  <span class="c">// (ids)</span>
+    }
+}</code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>const offIssues = trueseal.onDeliveryIssue((issue) =&gt; {  <span class="c">// optional. Ignoring it is safe.</span>
+  switch (issue.type) {
+    case &quot;unreadable&quot;:                 <span class="c">// couldn&#x27;t decrypt, verify or parse</span>
+    case &quot;unauthorized&quot;:               <span class="c">// not from a current member</span>
+    case &quot;heldForUpgrade&quot;:             <span class="c">// newer End-to-End Version; kept on relay</span>
+    case &quot;handlerGaveUp&quot;:              <span class="c">// issue.messageId, issue.error</span>
+    case &quot;sendFailed&quot;:                 <span class="c">// issue.reason: &quot;tooLarge&quot; | &quot;malformed&quot; | &quot;expired&quot;</span>
+    case &quot;undeliverableAfterUpgrade&quot;:  <span class="c">// issue.messageIds</span>
+  }
+});</code></pre></figure></div></section>
+<section class="area" id="errors">
+  <header><h2>Errors</h2>
+    <div class="notes"><p class="today">Today: Swift has a typed enum and Kotlin a sealed class (8 cases each), while TS has a single untyped error that holds only a message.</p><p class="prop">The same 12 cases in all three SDKs. In TS that is one error class with a <code>code</code> string union and typed extras.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code>public enum TrueSealError: Error, Equatable, Sendable {
+    case invalidRelayAddress(String)
+    case invalidNamespace(String)
+    case storage(String)                <span class="c">// can&#x27;t open or write Session State</span>
+    case closed
+    case notMember(status: GroupStatus) <span class="c">// send/remove/leave/startPairing in the wrong state</span>
+    case alreadyInGroup                 <span class="c">// join() while a manifest exists</span>
+    case invalidPairingToken            <span class="c">// includes tokens from another protocol version</span>
+    case pairingClosed                  <span class="c">// accept() after the window closed</span>
+    case groupFull(max: Int)            <span class="c">// 32</span>
+    case memberNotFound
+    case payloadTooLarge(max: Int)
+    case messageHandlerAlreadySet
+}</code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>sealed class TrueSealException(message: String) : Exception(message) {
+    class InvalidRelayAddress(val reason: String)
+    class InvalidNamespace(val reason: String)
+    class Storage(val reason: String)
+    object Closed
+    class NotMember(val status: GroupStatus)
+    object AlreadyInGroup
+    object InvalidPairingToken
+    object PairingClosed
+    class GroupFull(val max: Int)
+    object MemberNotFound
+    class PayloadTooLarge(val max: Int)
+    object MessageHandlerAlreadySet
+}</code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>class TrueSealError extends Error {
+  readonly code:
+    | &quot;INVALID_RELAY_ADDRESS&quot; | &quot;INVALID_NAMESPACE&quot; | &quot;STORAGE&quot; | &quot;CLOSED&quot;
+    | &quot;NOT_MEMBER&quot; | &quot;ALREADY_IN_GROUP&quot; | &quot;INVALID_PAIRING_TOKEN&quot;
+    | &quot;PAIRING_CLOSED&quot; | &quot;GROUP_FULL&quot; | &quot;MEMBER_NOT_FOUND&quot;
+    | &quot;PAYLOAD_TOO_LARGE&quot; | &quot;MESSAGE_HANDLER_ALREADY_SET&quot;;
+  readonly max?: number;          <span class="c">// GROUP_FULL, PAYLOAD_TOO_LARGE</span>
+  readonly status?: GroupStatus;  <span class="c">// NOT_MEMBER</span>
+}
+<span class="c">// if (e instanceof TrueSealError &amp;&amp; e.code === &quot;PAYLOAD_TOO_LARGE&quot;) …</span></code></pre></figure></div></section>
+<section class="area" id="version">
+  <header><h2>Version and limits</h2>
+    <div class="notes"><p class="today">Today: nothing is public. TS has a hidden native <code>version()</code>.</p><p class="prop">Static info with the SDK version, the Transport and End-to-End Versions, and the two protocol limits.</p></div></header>
+  <div class="grid"><figure class="col"><figcaption>Swift</figcaption><pre><code>TrueSeal.info.sdkVersion          <span class="c">// &quot;0.3.0&quot;</span>
+TrueSeal.info.transportVersion    <span class="c">// 1</span>
+TrueSeal.info.endToEndVersion     <span class="c">// 1</span>
+TrueSeal.maxPayloadBytes          <span class="c">// 61_440</span>
+TrueSeal.maxGroupSize             <span class="c">// 32</span>
+<span class="c">// No capability negotiation (ADR-0022), so these are constants.</span></code></pre></figure><figure class="col"><figcaption>Kotlin</figcaption><pre><code>TrueSeal.info.sdkVersion          <span class="c">// &quot;0.3.0&quot;</span>
+TrueSeal.info.transportVersion    <span class="c">// 1</span>
+TrueSeal.info.endToEndVersion     <span class="c">// 1</span>
+TrueSeal.MAX_PAYLOAD_BYTES        <span class="c">// 61_440</span>
+TrueSeal.MAX_GROUP_SIZE           <span class="c">// 32</span>
+<span class="c">// No capability negotiation (ADR-0022), so these are constants.</span></code></pre></figure><figure class="col"><figcaption>TypeScript</figcaption><pre><code>TrueSeal.info.sdkVersion;         <span class="c">// &quot;0.3.0&quot;</span>
+TrueSeal.info.transportVersion;   <span class="c">// 1</span>
+TrueSeal.info.endToEndVersion;    <span class="c">// 1</span>
+TrueSeal.MAX_PAYLOAD_BYTES;       <span class="c">// 61_440</span>
+TrueSeal.MAX_GROUP_SIZE;          <span class="c">// 32</span>
+<span class="c">// No capability negotiation (ADR-0022), so these are constants.</span></code></pre></figure></div></section>
+</div>
