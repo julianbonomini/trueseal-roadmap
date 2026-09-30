@@ -5,7 +5,6 @@ Status: **draft, compiled 2026-09-30** from every closed decision on [Map: TrueS
 This document is an index. Each rule is stated once, briefly, with a link to the ADR that owns it. When this spec and an ADR disagree, the ADR wins, and this spec has a bug.
 
 Open before the spec is final:
-- [Decision: preview lifecycle and the criteria for 1.0][t28] fills in [section 7](#7-preview-lifecycle).
 - [Decision: reconcile three conflicts between preview ADRs][t30] settles the items marked **(t30)** below.
 - [Task: file the spec's work list as issues in the owning repos][t29] links each work-list line to its issue.
 
@@ -95,7 +94,8 @@ The canonical source is the Threat Model page that trueseal-docs must ship ([Dec
 - Destroy Group limits;
 - no SAS, so a photographed token can be used while the window is open;
 - no relay key rotation;
-- handler latency is visible to the relay, and a hung handler stalls delivery.
+- handler latency is visible to the relay, and a hung handler stalls delivery;
+- not independently audited ([sync ADR-0033][s33]).
 
 ## 5. Version scheme and wire compatibility
 
@@ -123,7 +123,7 @@ A gated release is the lockstep TrueSeal Release, the relay or noise. Every gate
 | G6 | Upgrade fixtures: real stores from every release since the migration floor open and migrate, interop with un-upgraded and upgraded peers, `storeTooNew` refusal, recovery from a killed migration | Release Evidence | Release Conductor ([sync ADR-0032][s32]) |
 | G7 | Relay log and store privacy: no client address in logs (normal and dev mode) or in `inbox.db`, and no client metadata in normal-mode logs | Release Evidence | Release Conductor ([relay ADR-0012][r12]) |
 | G8 | Pinned inputs: every cross-repo input is pinned to an exact version and checksum, with no `releases/latest`, sibling `path` or `:latest` | Pre-promotion check | Release Conductor ([sync ADR-0030][s30], [e2e ADR-0002][e2]) |
-| G9 | Pre-promotion metadata: versions match tags, Rust `rev =` SHAs, a changelog entry, Apache-2.0 metadata | Pre-promotion check | Release Conductor |
+| G9 | Pre-promotion metadata: versions match tags, Rust `rev =` SHAs, a changelog entry, a "Breaking" section with upgrade steps on any breaking release ([sync ADR-0033][s33]), Apache-2.0 metadata | Pre-promotion check | Release Conductor |
 | G10 | Threat Model claims check: every claim's named tests exist | Docs CI | trueseal-docs CI ([threat model decision][t16]) |
 | G11 | Reference-existence check: every name, case, limit and page referenced by Agent Docs, Human Docs and Skills exists | Docs and skills CI | trueseal-docs and trueseal-skills CI ([docs ADR-0003][d3], [ADR-0005][d5]) |
 | G12 | SDK parity check: event and error cases match across the three SDKs and the core | SDK CI and the Conductor | [sync ADR-0028][s28] |
@@ -142,7 +142,23 @@ A red gate burns no version. A failed promotion is retried forward. A channel th
 
 ## 7. Preview lifecycle
 
-*Pending [Decision: preview lifecycle and the criteria for 1.0][t28].* It will cover notice for breaking releases, the criteria for 1.0, the end of the preview, and fixes for older 0.x releases.
+Source: [sync ADR-0033][s33].
+
+**While the preview lasts:**
+- **No notice period.** Any 0.x release may break the API, the wire format or stored data without advance warning.
+- **Upgrade Notes are required.** Every breaking release has a "Breaking" section with upgrade steps. It appears in the changelog, on the GitHub Release and on the docs' Upgrade Notes page, and G9 checks for it. Fixed labels:
+  - a protocol-version bump: "every device and the relay must upgrade together";
+  - a Store Reset: "local data is wiped and every group must pair again".
+- **No end date.** The preview ends only when the 1.0 criteria are met. No target date is published.
+- **Fixes are best effort, with no promise.** Fixes, security fixes included, land only in the next 0.x. Nothing is backported.
+
+**Criteria for 1.0:**
+1. Identity keys in Keychain and Keystore, and the local store encrypted at rest.
+2. SDK APIs follow semver, enforced by an API-diff check in CI.
+3. Session State and the relay store migrate forward only within a major version. No Store Reset inside a major.
+4. One Transport Version and one End-to-End Version per major version. A protocol bump is a new major.
+
+**Not required for 1.0:** an external audit ("not independently audited" stays a limitation), end-to-end forward secrecy (a 2.0 candidate, [trueseal-sync#90][s90]), network-level IP hiding, a hosted relay, and crates.io.
 
 ## 8. Work list
 
@@ -323,7 +339,7 @@ Items specific to one SDK:
 - E2E-8 **impl**: the Release Conductor ([e2e ADR-0002][e2]):
   - Release Manifests;
   - candidate staging;
-  - pre-promotion checks (G8, G9);
+  - pre-promotion checks (G8, G9, including the "Breaking" section check);
   - ordered promotion;
   - the install check (G13);
   - Release Evidence;
@@ -357,7 +373,7 @@ Items specific to one SDK:
   - Destroy Group wording;
   - the upgrade promise and Store Reset;
   - relay self-hosting (keypair, backup, logging modes, limits, `/healthz`, an exact image tag, the reset flag).
-- DOCS-8 **docs**: the generated Compatibility Table page, a SECURITY and vulnerability-reporting page, and the preview lifecycle page (after [Decision: preview lifecycle and the criteria for 1.0][t28]).
+- DOCS-8 **docs**: the generated Compatibility Table page, a SECURITY and vulnerability-reporting page, the preview lifecycle page, and the Upgrade Notes page ([sync ADR-0033][s33]).
 - DOCS-9 **docs**: verify "about ten lines", "one container", the comparison cells and the other claims in brandbook section 10 before launch.
 - DOCS-10 **impl**: draw the seal mascot.
 
@@ -388,14 +404,12 @@ These are the one-time checklist before 0.6.0 (G15). They need the maintainer's 
 | Whether `Sync` entries are purged or re-sealed on an End-to-End bump | SYNC-13, and the `undeliverableAfterUpgrade` case in SDK-1 | [Decision: reconcile three conflicts between preview ADRs][t30] |
 | Relay TTL bound and sender timestamp timing | SYNC-12, RELAY-8, the replay claim | [Decision: reconcile three conflicts between preview ADRs][t30] |
 | Delivery Issue cases for "sender too old", unknown frame or tag, and the Replay Window | SDK-1, SYNC-15, G12 | [Decision: reconcile three conflicts between preview ADRs][t30] |
-| Preview lifecycle and 1.0 criteria | Section 7, DOCS-8 | [Decision: preview lifecycle and the criteria for 1.0][t28] |
 
 [map]: https://github.com/julianbonomini/trueseal-roadmap/issues/1
 [t4]: https://github.com/julianbonomini/trueseal-roadmap/issues/4
 [t16]: https://github.com/julianbonomini/trueseal-roadmap/issues/16
 [t26]: https://github.com/julianbonomini/trueseal-roadmap/issues/26
 [t27]: https://github.com/julianbonomini/trueseal-roadmap/issues/27
-[t28]: https://github.com/julianbonomini/trueseal-roadmap/issues/28
 [t29]: https://github.com/julianbonomini/trueseal-roadmap/issues/29
 [t30]: https://github.com/julianbonomini/trueseal-roadmap/issues/30
 [s22]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0022-fixed-protocol-versions-no-negotiation.md
@@ -409,6 +423,8 @@ These are the one-time checklist before 0.6.0 (G15). They need the maintainer's 
 [s30]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0030-distribution-channels-and-lockstep-versions.md
 [s31]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0031-sealed-envelope-and-replay-window.md
 [s32]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0032-versioned-session-state-and-store-reset.md
+[s33]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0033-preview-lifecycle-and-1.0-criteria.md
+[s90]: https://github.com/julianbonomini/trueseal-sync/issues/90
 [r12]: https://github.com/julianbonomini/trueseal-relay/blob/main/docs/adr/0012-self-hosted-preview-baseline.md
 [r13]: https://github.com/julianbonomini/trueseal-relay/blob/main/docs/adr/0013-versioned-inbox-store.md
 [e1]: https://github.com/julianbonomini/trueseal-e2e/blob/main/docs/adr/0001-developer-preview-release-gate.md
