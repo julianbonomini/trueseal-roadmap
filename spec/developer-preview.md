@@ -1,11 +1,10 @@
 # Developer Preview Release Spec
 
-Status: **draft, compiled 2026-09-30** from every closed decision on [Map: TrueSeal Developer Preview release][map] ([Task: compile the Developer Preview Release Spec][t27]). It adds no decisions of its own. Where decisions conflicted, the conflict went to a ticket, and the spec now follows its resolution.
+Status: **final, compiled 2026-09-30** from every closed decision on [Map: TrueSeal Developer Preview release][map] ([Task: compile the Developer Preview Release Spec][t27]). It adds no decisions of its own. Where decisions conflicted, the conflict went to a ticket, and the spec now follows its resolution.
 
 This document is an index. Each rule is stated once, briefly, with a link to the ADR that owns it. When this spec and an ADR disagree, the ADR wins, and this spec has a bug.
 
-Open before the spec is final:
-- [Task: file the spec's work list as issues in the owning repos][t29] links each work-list line to its issue.
+Every work-list line links its issue ([Task: file the spec's work list as issues in the owning repos][t29]). Each issue is in its repo's `Developer Preview` milestone, carries a `kind:*` label, and uses GitHub's native blocked-by links, across repos too. Approval items carry `needs-approval`.
 
 ## 1. What the preview is
 
@@ -161,7 +160,7 @@ Source: [sync ADR-0033][s33].
 
 ## 8. Work list
 
-Each item is filed as an issue in its owning repo by [Task: file the spec's work list][t29]. Tags:
+Each item is filed as an issue in its owning repo by [Task: file the spec's work list][t29]. Items marked *(gap)* were found while filing and aren't tied to one decision. Tags:
 - **fix**: a confirmed defect, which needs a failing test before the fix;
 - **impl**: implement a decision;
 - **test**: new test coverage;
@@ -172,11 +171,11 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
 
 ### trueseal-noise
 
-- NOISE-1 **impl**: accept a prologue from callers so the Transport Version prefix is bound into XX and NK ([sync ADR-0022][s22]).
-- NOISE-2 **fix**: concurrent send and send can reorder nonces (baseline inventory).
-- NOISE-3 **test**: adversarial and timeout tests (baseline inventory).
-- NOISE-4 **docs**: state the u16 frame ceiling (65,519 bytes of plaintext) as the source number for the size limit ([sync ADR-0025][s25]).
-- NOISE-5 **hygiene**:
+- [NOISE-1](https://github.com/julianbonomini/trueseal-noise/issues/25) **impl**: accept a prologue from callers so the Transport Version prefix is bound into XX and NK ([sync ADR-0022][s22]).
+- [NOISE-2](https://github.com/julianbonomini/trueseal-noise/issues/26) **fix**: concurrent send and send can reorder nonces (baseline inventory).
+- [NOISE-3](https://github.com/julianbonomini/trueseal-noise/issues/27) **test**: adversarial and timeout tests (baseline inventory).
+- [NOISE-4](https://github.com/julianbonomini/trueseal-noise/issues/28) **docs**: state the u16 frame ceiling (65,519 bytes of plaintext) as the source number for the size limit ([sync ADR-0025][s25]).
+- [NOISE-5](https://github.com/julianbonomini/trueseal-noise/issues/29) **hygiene**:
   - set the Cargo license to Apache-2.0 ([sync ADR-0030][s30]);
   - make Cargo versions match tags, from 0.2.0;
   - fix the README's claim that "XX is used between devices" ([threat model decision][t16]);
@@ -184,20 +183,20 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
 
 ### trueseal-sync (core and FFI)
 
-- SYNC-1 **impl**: Transport and End-to-End Versions, version checks before DeliverAck, typed rejection, the held-blob cap, and `info` constants ([sync ADR-0022][s22]).
-- SYNC-2 **impl**: produce the JSON test vectors covering:
+- [SYNC-1](https://github.com/julianbonomini/trueseal-sync/issues/93) **impl**: Transport and End-to-End Versions, version checks before DeliverAck, typed rejection, the held-blob cap, and `info` constants ([sync ADR-0022][s22]).
+- [SYNC-2](https://github.com/julianbonomini/trueseal-sync/issues/94) **impl**: produce the JSON test vectors covering:
   - signing inputs;
   - addressed encryption;
   - the Message ID;
   - every frame;
   - the version prefix;
   - one rejection per layer ([sync ADR-0022][s22], G5).
-- SYNC-3 **impl**: the pairing trust anchor, Pairing Secret, Pending Join, Pairing Window and join state ([sync ADR-0023][s23]). Tests:
+- [SYNC-3](https://github.com/julianbonomini/trueseal-sync/issues/95) **impl**: the pairing trust anchor, Pairing Secret, Pending Join, Pairing Window and join state ([sync ADR-0023][s23]). Tests:
   - repro variants 1 to 4 pass;
   - a relay-injected `Pair`, a wrong secret and a replayed spent secret are rejected;
   - a crash at each transition.
-- SYNC-4 **fix**: bind the `Pair` `signing_pub` to the Envelope signer (repro variant 5, [Task: reproduce the joiner manifest-trust hijack][t4]).
-- SYNC-5 **impl**: the delivery contract ([sync ADR-0026][s26]):
+- [SYNC-4](https://github.com/julianbonomini/trueseal-sync/issues/96) **fix**: bind the `Pair` `signing_pub` to the Envelope signer (repro variant 5, [Task: reproduce the joiner manifest-trust hijack][t4]).
+- [SYNC-5](https://github.com/julianbonomini/trueseal-sync/issues/97) **impl**: the delivery contract ([sync ADR-0026][s26]):
   - ack after the handler;
   - 5 handler attempts, then `handlerGaveUp`;
   - serial handling;
@@ -210,17 +209,17 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
   - deleting delivered rows.
 
   It includes the crash tests listed in the ADR.
-- SYNC-6 **fix**: the connect/subscribe race (`relay.rs:148-156`, `mod.rs:457-473`).
-- SYNC-7 **fix**: the manifest is restored after the reconnect loop has already started (`ffi.rs:217` vs `:274-279`).
-- SYNC-8 **fix**: an oversize send is accepted and replays forever. Enforce the 61,440-byte limit in `send()` with `payloadTooLarge`, and drop oversize dev-outbox entries on load ([sync ADR-0025][s25]).
-- SYNC-9 **impl**: membership convergence ([sync ADR-0027][s27]):
+- [SYNC-6](https://github.com/julianbonomini/trueseal-sync/issues/98) **fix**: the connect/subscribe race (`relay.rs:148-156`, `mod.rs:457-473`).
+- [SYNC-7](https://github.com/julianbonomini/trueseal-sync/issues/99) **fix**: the manifest is restored after the reconnect loop has already started (`ffi.rs:217` vs `:274-279`).
+- [SYNC-8](https://github.com/julianbonomini/trueseal-sync/issues/100) **fix**: an oversize send is accepted and replays forever. Enforce the 61,440-byte limit in `send()` with `payloadTooLarge`, and drop oversize dev-outbox entries on load ([sync ADR-0025][s25]).
+- [SYNC-9](https://github.com/julianbonomini/trueseal-sync/issues/101) **impl**: membership convergence ([sync ADR-0027][s27]):
   - `parent` links and (version, hash) ordering;
   - Pending Membership Change;
   - `leave()` and the Leaving state;
   - wipe and rotate on removal;
   - Maximum Group Size 32.
-- SYNC-10 **fix**: checked version arithmetic and a bound on version jumps (a manifest at `u64::MAX` freezes membership) ([sync ADR-0027][s27]).
-- SYNC-11 **impl**: Destroy Group ([sync ADR-0029][s29]):
+- [SYNC-10](https://github.com/julianbonomini/trueseal-sync/issues/102) **fix**: checked version arithmetic and a bound on version jumps (a manifest at `u64::MAX` freezes membership) ([sync ADR-0027][s27]).
+- [SYNC-11](https://github.com/julianbonomini/trueseal-sync/issues/103) **impl**: Destroy Group ([sync ADR-0029][s29]):
   - Revoke through the outbox;
   - the Destroying state;
   - forwarding;
@@ -228,24 +227,24 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
   - the state table.
 
   It includes the unit tests listed in the ADR.
-- SYNC-12 **impl**: the Sealed Envelope and Replay Window ([sync ADR-0031][s31]) with the tests in its Consequences, plus the Sender Timestamp rule, control-message replay tests and `unreadable` reasons ([sync ADR-0034][s34]).
-- SYNC-13 **impl**: Store Version, chained migrations, automatic Store Reset and `storeTooNew`, plus re-sealing every outbox entry, `Sync` included, on an End-to-End bump ([sync ADR-0032][s32], [ADR-0034][s34]).
-- SYNC-14 **impl**: exclude the store from cloud and device backups on every platform, and delete outbox bodies once the relay accepts them ([threat model decision][t16], [sync ADR-0032][s32]).
-- SYNC-15 **impl**: reshape `ffi.rs` to the canonical API ([sync ADR-0028][s28]):
+- [SYNC-12](https://github.com/julianbonomini/trueseal-sync/issues/104) **impl**: the Sealed Envelope and Replay Window ([sync ADR-0031][s31]) with the tests in its Consequences, plus the Sender Timestamp rule, control-message replay tests and `unreadable` reasons ([sync ADR-0034][s34]).
+- [SYNC-13](https://github.com/julianbonomini/trueseal-sync/issues/105) **impl**: Store Version, chained migrations, automatic Store Reset and `storeTooNew`, plus re-sealing every outbox entry, `Sync` included, on an End-to-End bump ([sync ADR-0032][s32], [ADR-0034][s34]).
+- [SYNC-14](https://github.com/julianbonomini/trueseal-sync/issues/106) **impl**: exclude the store from cloud and device backups on every platform, and delete outbox bodies once the relay accepts them ([threat model decision][t16], [sync ADR-0032][s32]).
+- [SYNC-15](https://github.com/julianbonomini/trueseal-sync/issues/107) **impl**: reshape `ffi.rs` to the canonical API ([sync ADR-0028][s28]):
   - an async handler;
   - event and issue callbacks, with `unreadable(reason)` and no `undeliverableAfterUpgrade` ([ADR-0034][s34]);
   - 13 typed errors;
   - `close()`;
   - Relay Address parsing;
   - configurable ports.
-- SYNC-16 **impl**: the client sends a heartbeat every 25 s ([relay ADR-0012][r12]).
-- SYNC-17 **impl**: the one connection-factory seam stays the only place sockets are opened. This keeps later IP hiding possible ([Decision: should the relay be unable to see client IPs][t26]).
-- SYNC-18 **ci**:
+- [SYNC-16](https://github.com/julianbonomini/trueseal-sync/issues/108) **impl**: the client sends a heartbeat every 25 s ([relay ADR-0012][r12]).
+- [SYNC-17](https://github.com/julianbonomini/trueseal-sync/issues/109) **impl**: the one connection-factory seam stays the only place sockets are opened. This keeps later IP hiding possible ([Decision: should the relay be unable to see client IPs][t26]).
+- [SYNC-18](https://github.com/julianbonomini/trueseal-sync/issues/110) **ci**:
   - drop `TRUESEAL_READ_TOKEN`;
   - make Cargo versions match tags;
   - add a candidate-build workflow and a promote workflow ([e2e ADR-0002][e2]);
   - keep one lockstep changelog with a section per SDK.
-- SYNC-19 **hygiene**:
+- [SYNC-19](https://github.com/julianbonomini/trueseal-sync/issues/111) **hygiene**:
   - set the Cargo license to Apache-2.0;
   - remove `src/revocation.rs`;
   - resolve the duplicate ADR-0018;
@@ -253,39 +252,41 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
   - remove `progress.md`, `src/bin/NOTES.md` and `prototype_error_handling.rs`;
   - replace `.expect()` in `PersistentLog`;
   - zeroize keys (P4 TODO).
-- SYNC-20 **docs**:
+- [SYNC-20](https://github.com/julianbonomini/trueseal-sync/issues/112) **docs**:
   - update ADR-0002's token description;
   - fix the README's overreaching claims ([threat model decision][t16]);
   - remove wording that treats member names as authentication ([sync ADR-0023][s23]).
+- [SYNC-21](https://github.com/julianbonomini/trueseal-sync/issues/113) **impl** *(gap)*: export the Shared Facts (errors, events, limits, versions) as a generated machine-readable file for the docs, skills and SDK parity checks ([docs ADR-0003][d3], G11, G12).
+- [SYNC-22](https://github.com/julianbonomini/trueseal-sync/issues/114) **ci** *(gap)*: build a Linux x64 core library for the Kotlin JVM test lane ([e2e ADR-0001][e1]).
 
 ### trueseal-relay
 
-- RELAY-1 **fix**: DeliverAck deletes any Blob by ID without checking which inbox owns it (`router.go:67-70`, `sqlite/store.go:117`). Confirmed.
-- RELAY-2 **fix**: the delivery goroutine and the heartbeat reply encrypt and write concurrently on a Receive Session (`receive.go:97,131`). Confirmed under `-race`.
-- RELAY-3 **fix**: the relay doesn't check that the push routing prefix matches the Envelope's `recipient_pub` ([threat model decision][t16]).
-- RELAY-4 **fix**: remove IP, key-prefix and size logging (`main.go:138,156,171`, `router.go:57`, `receive.go`). Dev mode also never logs addresses ([relay ADR-0012][r12], [IP decision][t26]).
-- RELAY-5 **impl**: the Transport Version prefix, the `unsupported min..max` reply, generic `Error` codes with reason codes, and checks against the test vectors ([sync ADR-0022][s22], [ADR-0025][s25], G5).
-- RELAY-6 **impl**: abuse limits and deadlines: per-inbox quotas, the per-recipient rate limit, the connection cap, the Receive Session cap per key, handshake and session deadlines, and typed refusals. Short values must be configurable for e2e ([relay ADR-0012][r12]).
-- RELAY-7 **impl**: send each Blob once per Receive Session, instead of re-sending the whole inbox on every notify (`router.go:100-135`). Fix the early-blob discard (`receive.go:80-87`) ([sync ADR-0026][s26]).
-- RELAY-8 **impl**:
+- [RELAY-1](https://github.com/julianbonomini/trueseal-relay/issues/38) **fix**: DeliverAck deletes any Blob by ID without checking which inbox owns it (`router.go:67-70`, `sqlite/store.go:117`). Confirmed.
+- [RELAY-2](https://github.com/julianbonomini/trueseal-relay/issues/39) **fix**: the delivery goroutine and the heartbeat reply encrypt and write concurrently on a Receive Session (`receive.go:97,131`). Confirmed under `-race`.
+- [RELAY-3](https://github.com/julianbonomini/trueseal-relay/issues/40) **fix**: the relay doesn't check that the push routing prefix matches the Envelope's `recipient_pub` ([threat model decision][t16]).
+- [RELAY-4](https://github.com/julianbonomini/trueseal-relay/issues/41) **fix**: remove IP, key-prefix and size logging (`main.go:138,156,171`, `router.go:57`, `receive.go`). Dev mode also never logs addresses ([relay ADR-0012][r12], [IP decision][t26]).
+- [RELAY-5](https://github.com/julianbonomini/trueseal-relay/issues/42) **impl**: the Transport Version prefix, the `unsupported min..max` reply, generic `Error` codes with reason codes, and checks against the test vectors ([sync ADR-0022][s22], [ADR-0025][s25], G5).
+- [RELAY-6](https://github.com/julianbonomini/trueseal-relay/issues/43) **impl**: abuse limits and deadlines: per-inbox quotas, the per-recipient rate limit, the connection cap, the Receive Session cap per key, handshake and session deadlines, and typed refusals. Short values must be configurable for e2e ([relay ADR-0012][r12]).
+- [RELAY-7](https://github.com/julianbonomini/trueseal-relay/issues/44) **impl**: send each Blob once per Receive Session, instead of re-sending the whole inbox on every notify (`router.go:100-135`). Fix the early-blob discard (`receive.go:80-87`) ([sync ADR-0026][s26]).
+- [RELAY-8](https://github.com/julianbonomini/trueseal-relay/issues/45) **impl**:
   - refuse to start with a size limit above the protocol ceiling ([sync ADR-0025][s25]);
   - refuse to start with a TTL above 30 days ([relay ADR-0012][r12], [sync ADR-0034][s34]).
-- RELAY-9 **impl**: normal and dev logging modes (`-dev`, `TRUESEAL_RELAY_DEV=1`), with dev mode shown in `/healthz` ([relay ADR-0012][r12]).
-- RELAY-10 **fix**:
+- [RELAY-9](https://github.com/julianbonomini/trueseal-relay/issues/29) **impl**: normal and dev logging modes (`-dev`, `TRUESEAL_RELAY_DEV=1`), with dev mode shown in `/healthz` ([relay ADR-0012][r12]).
+- [RELAY-10](https://github.com/julianbonomini/trueseal-relay/issues/30) **fix**:
   - make `/healthz` check the store and return 503 on failure (it always returns 200 today);
   - report the Transport Version there.
-- RELAY-11 **fix**: graceful shutdown doesn't cancel sessions (a `context.Background()` session context). Implement the 10 s drain ([relay ADR-0012][r12]).
-- RELAY-12 **fix**: `-genkey` is broken under Docker. Also:
+- [RELAY-11](https://github.com/julianbonomini/trueseal-relay/issues/31) **fix**: graceful shutdown doesn't cancel sessions (a `context.Background()` session context). Implement the 10 s drain ([relay ADR-0012][r12]).
+- [RELAY-12](https://github.com/julianbonomini/trueseal-relay/issues/32) **fix**: `-genkey` is broken under Docker. Also:
   - auto-generate the key on first start;
   - add `trueseal-relay pubkey`;
   - add a command that prints the Relay Address ([sync ADR-0028][s28]).
-- RELAY-13 **impl**: the inbox Store Version, migrations, the Operator reset flag and newer-store refusal ([relay ADR-0013][r13]).
-- RELAY-14 **impl**: the Hostile Relay injection hooks, behind a Go build tag that release builds exclude ([e2e ADR-0001][e1]).
-- RELAY-15 **ci**:
+- [RELAY-13](https://github.com/julianbonomini/trueseal-relay/issues/33) **impl**: the inbox Store Version, migrations, the Operator reset flag and newer-store refusal ([relay ADR-0013][r13]).
+- [RELAY-14](https://github.com/julianbonomini/trueseal-relay/issues/34) **impl**: the Hostile Relay injection hooks, behind a Go build tag that release builds exclude ([e2e ADR-0001][e1]).
+- [RELAY-15](https://github.com/julianbonomini/trueseal-relay/issues/35) **ci**:
   - remove Dozzle, Caddy and HAProxy `tcplog` from the shipped compose file;
   - add a candidate and promote workflow with a multi-arch attested GHCR image;
   - move the VPS deploy and the `:latest` push to a manual deploy workflow that takes an exact version ([e2e ADR-0002][e2]).
-- RELAY-16 **hygiene**:
+- [RELAY-16](https://github.com/julianbonomini/trueseal-relay/issues/36) **hygiene**:
   - fix the ADR-0008 drift (1 MiB, relay-initiated heartbeats, the `Error` body);
   - resolve the duplicate ADR-0010;
   - add the missing `config/relay.toml` or remove its references;
@@ -295,47 +296,47 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
 ### trueseal-sync-swift, trueseal-sync-kotlin, trueseal-sync-ts
 
 Items shared by all three SDKs are filed once per SDK:
-- SDK-1 **impl**: move to the canonical API ([sync ADR-0028][s28]), including `destroying` ([ADR-0029][s29]) and `storeReset` and `storeTooNew` ([ADR-0032][s32]), and the Delivery Issue cases as amended by [ADR-0034][s34].
-- SDK-2 **test**: check the JSON test vectors through the bindings (G5).
-- SDK-3 **impl**: generate `TrueSeal.info`, `maxPayloadBytes` and `maxGroupSize` from the core ([sync ADR-0030][s30]).
-- SDK-4 **ci**:
+- SDK-1 ([Swift](https://github.com/julianbonomini/trueseal-sync-swift/issues/2), [Kotlin](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/4), [TS](https://github.com/julianbonomini/trueseal-sync-ts/issues/9)) **impl**: move to the canonical API ([sync ADR-0028][s28]), including `destroying` ([ADR-0029][s29]) and `storeReset` and `storeTooNew` ([ADR-0032][s32]), and the Delivery Issue cases as amended by [ADR-0034][s34].
+- SDK-2 ([Swift](https://github.com/julianbonomini/trueseal-sync-swift/issues/3), [Kotlin](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/5), [TS](https://github.com/julianbonomini/trueseal-sync-ts/issues/10)) **test**: check the JSON test vectors through the bindings (G5).
+- SDK-3 ([Swift](https://github.com/julianbonomini/trueseal-sync-swift/issues/4), [Kotlin](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/6), [TS](https://github.com/julianbonomini/trueseal-sync-ts/issues/11)) **impl**: generate `TrueSeal.info`, `maxPayloadBytes` and `maxGroupSize` from the core ([sync ADR-0030][s30]).
+- SDK-4 ([Swift](https://github.com/julianbonomini/trueseal-sync-swift/issues/5), [Kotlin](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/7), [TS](https://github.com/julianbonomini/trueseal-sync-ts/issues/12)) **ci**:
   - a candidate-build and promote workflow;
   - pin core to an exact tag and checksum;
   - add the parity check (G12) ([e2e ADR-0002][e2]).
-- SDK-5 **docs**: shrink the README to a quickstart marked "Developer Preview" ([docs ADR-0003][d3]).
+- SDK-5 ([Swift](https://github.com/julianbonomini/trueseal-sync-swift/issues/6), [Kotlin](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/8), [TS](https://github.com/julianbonomini/trueseal-sync-ts/issues/13)) **docs**: shrink the README to a quickstart marked "Developer Preview" ([docs ADR-0003][d3]).
 
 Items specific to one SDK:
-- SWIFT-1 **fix**: the relay port is silently ignored. The Relay Address fixes it.
-- SWIFT-2 **ci**:
+- [SWIFT-1](https://github.com/julianbonomini/trueseal-sync-swift/issues/7) **fix**: the relay port is silently ignored. The Relay Address fixes it.
+- [SWIFT-2](https://github.com/julianbonomini/trueseal-sync-swift/issues/8) **ci**:
   - stop force-moving tags;
   - replace the `sed` stamp with `version`, `url` and `checksum` constants;
   - remove the stale draft release v0.0.5.
-- SWIFT-3 **docs**: remove the 60-second pairing-window claim and the "Production-ready" label.
-- KOTLIN-1 **fix**: the package isn't installable. Move from JitPack to Maven Central with `com.vanniktech.maven.publish`, stop committing `.so` files, and fix the POM license and url.
-- KOTLIN-2 **impl**: a test-only JVM build of the same sources for the e2e headless lanes. It is never published ([e2e ADR-0001][e1]).
-- KOTLIN-3 **fix**: core is pinned to `releases/latest`.
-- TS-1 **fix**: the package isn't installable. Needed:
+- [SWIFT-3](https://github.com/julianbonomini/trueseal-sync-swift/issues/9) **docs**: remove the 60-second pairing-window claim and the "Production-ready" label.
+- [KOTLIN-1](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/9) **fix**: the package isn't installable. Move from JitPack to Maven Central with `com.vanniktech.maven.publish`, stop committing `.so` files, and fix the POM license and url.
+- [KOTLIN-2](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/10) **impl**: a test-only JVM build of the same sources for the e2e headless lanes. It is never published ([e2e ADR-0001][e1]).
+- [KOTLIN-3](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/11) **fix**: core is pinned to `releases/latest`.
+- [TS-1](https://github.com/julianbonomini/trueseal-sync-ts/issues/14) **fix**: the package isn't installable. Needed:
   - rename it to `@trueseal/sync`;
   - upgrade to napi v3;
   - add per-platform packages;
   - generate the loader;
   - fill `index.d.ts`;
   - replace the sibling path dependency with a pinned git tag.
-- TS-2 **ci**: there is no CI. Add a build and test matrix for the npm targets.
-- TS-3 **impl**: replace the untyped `TruesealSyncError` with `TrueSealError`, which has a `code` union. Remove the `HushSession` name.
-- TS-4 **fix**: the high-severity advisory reported by `npm audit`.
-- TS-5 **hygiene**: close the stale issues #1 to #6, and file the unmet packaging criteria as a new issue.
+- [TS-2](https://github.com/julianbonomini/trueseal-sync-ts/issues/15) **ci**: there is no CI. Add a build and test matrix for the npm targets.
+- [TS-3](https://github.com/julianbonomini/trueseal-sync-ts/issues/16) **impl**: replace the untyped `TruesealSyncError` with `TrueSealError`, which has a `code` union. Remove the `HushSession` name.
+- [TS-4](https://github.com/julianbonomini/trueseal-sync-ts/issues/17) **fix**: the high-severity advisory reported by `npm audit`.
+- [TS-5](https://github.com/julianbonomini/trueseal-sync-ts/issues/18) **hygiene**: close the stale issues #1 to #6, and file the unmet packaging criteria as a new issue.
 
 ### trueseal-e2e
 
-- E2E-1 **impl**: the shared Scenario Driver and the JSON control protocol, with one driver per SDK ([e2e ADR-0001][e1]).
-- E2E-2 **impl**: the full scenario matrix (G1), including every e2e case the decision ADRs name. That covers pairing restarts and cancel, ordering in outbox replay, crash mid-handler, concurrent membership, Destroy Group, TTL boundaries, versions, relay limits and upgrade fixtures (G6).
-- E2E-3 **fix**: the case "duplicate envelope keeps one stable application message ID" expects two deliveries. It must expect one ([sync ADR-0031][s31]).
-- E2E-4 **impl**: the Interop Smoke for every SDK pair (G2).
-- E2E-5 **impl**: an Adversary Client built on the Rust interop lane, plus Hostile Relay scenarios (G3).
-- E2E-6 **impl**: the AAR emulator smoke test (G4).
-- E2E-7 **impl**: the relay log and store privacy check (G7).
-- E2E-8 **impl**: the Release Conductor ([e2e ADR-0002][e2]):
+- [E2E-1](https://github.com/julianbonomini/trueseal-e2e/issues/5) **impl**: the shared Scenario Driver and the JSON control protocol, with one driver per SDK ([e2e ADR-0001][e1]).
+- [E2E-2](https://github.com/julianbonomini/trueseal-e2e/issues/6) **impl**: the full scenario matrix (G1), including every e2e case the decision ADRs name. That covers pairing restarts and cancel, ordering in outbox replay, crash mid-handler, concurrent membership, Destroy Group, TTL boundaries, versions, relay limits and upgrade fixtures (G6).
+- [E2E-3](https://github.com/julianbonomini/trueseal-e2e/issues/7) **fix**: the case "duplicate envelope keeps one stable application message ID" expects two deliveries. It must expect one ([sync ADR-0031][s31]).
+- [E2E-4](https://github.com/julianbonomini/trueseal-e2e/issues/8) **impl**: the Interop Smoke for every SDK pair (G2).
+- [E2E-5](https://github.com/julianbonomini/trueseal-e2e/issues/9) **impl**: an Adversary Client built on the Rust interop lane, plus Hostile Relay scenarios (G3).
+- [E2E-6](https://github.com/julianbonomini/trueseal-e2e/issues/10) **impl**: the AAR emulator smoke test (G4).
+- [E2E-7](https://github.com/julianbonomini/trueseal-e2e/issues/11) **impl**: the relay log and store privacy check (G7).
+- [E2E-8](https://github.com/julianbonomini/trueseal-e2e/issues/12) **impl**: the Release Conductor ([e2e ADR-0002][e2]):
   - Release Manifests;
   - candidate staging;
   - pre-promotion checks (G8, G9, including the "Breaking" section check);
@@ -344,57 +345,61 @@ Items specific to one SDK:
   - Release Evidence;
   - generating the Compatibility Table;
   - one command in both modes, where "not run" counts as a failure.
-- E2E-9 **ci**: stop building sibling main HEADs in gate mode. Keep Dev Mode nightly and on e2e changes.
-- E2E-10 **approval**: make the repo public after a secrets check. It was decided in [e2e ADR-0002][e2], but it is outward-facing, so it gets confirmed at the time.
+- [E2E-9](https://github.com/julianbonomini/trueseal-e2e/issues/13) **ci**: stop building sibling main HEADs in gate mode. Keep Dev Mode nightly and on e2e changes.
+- [E2E-10](https://github.com/julianbonomini/trueseal-e2e/issues/14) **approval**: make the repo public after a secrets check. It was decided in [e2e ADR-0002][e2], but it is outward-facing, so it gets confirmed at the time.
+- [E2E-11](https://github.com/julianbonomini/trueseal-e2e/issues/17) **hygiene** *(gap)*: add the Apache-2.0 LICENSE file before the repo goes public (G9).
 
 ### trueseal-docs
 
-- DOCS-1 **impl**: rebuild the tokens, layouts, Navbar and Landing to variant E, including the Seal Demo Island. Delete the old design-system files ([docs ADR-0004][d4]).
-- DOCS-2 **impl**: restructure `nav.ts` to the Journey, and rewrite the content in the brand voice ([brandbook][brand]).
-- DOCS-3 **impl**: the Agent Docs tree:
+- [DOCS-1](https://github.com/julianbonomini/trueseal-docs/issues/6) **impl**: rebuild the tokens, layouts, Navbar and Landing to variant E, including the Seal Demo Island. Delete the old design-system files ([docs ADR-0004][d4]).
+- [DOCS-2](https://github.com/julianbonomini/trueseal-docs/issues/7) **impl**: restructure `nav.ts` to the Journey, and rewrite the content in the brand voice ([brandbook][brand]).
+- [DOCS-3](https://github.com/julianbonomini/trueseal-docs/issues/8) **impl**: the Agent Docs tree:
   - `llms.txt`, `llms-full.txt` and per-page Markdown;
   - the full SDK API reference;
   - the Agent Snippet as the first page;
   - generated Shared Facts;
   - `/.well-known/agent-skills/index.json` pinned to a skills tag ([docs ADR-0003][d3], [ADR-0005][d5]).
-- DOCS-4 **impl**: the Threat Model page and its claims table, with the CI check (G10) ([threat model decision][t16]).
-- DOCS-5 **ci**: the reference-existence check (G11).
-- DOCS-6 **docs**: rewrite every overreaching claim:
+- [DOCS-4](https://github.com/julianbonomini/trueseal-docs/issues/9) **impl**: the Threat Model page and its claims table, with the CI check (G10) ([threat model decision][t16]).
+- [DOCS-5](https://github.com/julianbonomini/trueseal-docs/issues/10) **ci**: the reference-existence check (G11).
+- [DOCS-6](https://github.com/julianbonomini/trueseal-docs/issues/11) **docs**: rewrite every overreaching claim:
   - `introduction.mdx`, `principles-and-boundaries.mdx`, `zero-trust-and-encryption.mdx`, `architecture.mdx`, `revocation.mdx` and `deploying.mdx`;
   - the 1 MiB claims in `wire-format.mdx` and `deploying.mdx`;
   - "Production-ready";
   - the Kotlin JVM claim;
   - the name "trueseal-clip" ([threat model decision][t16], [sync ADR-0024][s24], [ADR-0025][s25], [ADR-0029][s29]).
-- DOCS-7 **docs**: new or rewritten pages:
+- [DOCS-7](https://github.com/julianbonomini/trueseal-docs/issues/12) **docs**: new or rewritten pages:
   - pairing around Pending Join and the join state;
   - the delivery promise, its exceptions and the delivery-issue stream;
   - membership trust, the flicker, the 32-member limit and the automatic wipe;
   - Destroy Group wording;
   - the upgrade promise and Store Reset;
   - relay self-hosting (keypair, backup, logging modes, limits, `/healthz`, an exact image tag, the reset flag).
-- DOCS-8 **docs**: the generated Compatibility Table page, a SECURITY and vulnerability-reporting page, the preview lifecycle page, and the Upgrade Notes page ([sync ADR-0033][s33]).
-- DOCS-9 **docs**: verify "about ten lines", "one container", the comparison cells and the other claims in brandbook section 10 before launch.
-- DOCS-10 **impl**: draw the seal mascot.
+- [DOCS-8](https://github.com/julianbonomini/trueseal-docs/issues/13) **docs**: the generated Compatibility Table page, a SECURITY and vulnerability-reporting page, the preview lifecycle page, and the Upgrade Notes page ([sync ADR-0033][s33]).
+- [DOCS-9](https://github.com/julianbonomini/trueseal-docs/issues/14) **docs**: verify "about ten lines", "one container", the comparison cells and the other claims in brandbook section 10 before launch.
+- [DOCS-10](https://github.com/julianbonomini/trueseal-docs/issues/15) **impl**: draw the seal mascot.
+- [DOCS-11](https://github.com/julianbonomini/trueseal-docs/issues/20) **hygiene** *(gap)*: add the Apache-2.0 LICENSE file.
 
 ### trueseal-skills (new repo)
 
-- SKILLS-1 **impl**: create `julianbonomini/trueseal-skills` (Apache-2.0) with the `trueseal` plugin and three skills: `trueseal:integrate`, `trueseal:pairing` and `trueseal:relay` ([docs ADR-0005][d5]).
-- SKILLS-2 **impl**: the Claude Code marketplace manifest and `npx skills add` support, tagged every TrueSeal Release.
-- SKILLS-3 **test**: nine eval cases (G14), plus coverage by the reference-existence check (G11).
+These are filed in trueseal-docs, which owns docs ADR-0005, and they transfer to trueseal-skills once SKILLS-1 creates it.
+
+- [SKILLS-1](https://github.com/julianbonomini/trueseal-docs/issues/16) **impl**: create `julianbonomini/trueseal-skills` (Apache-2.0) with the `trueseal` plugin and three skills: `trueseal:integrate`, `trueseal:pairing` and `trueseal:relay` ([docs ADR-0005][d5]).
+- [SKILLS-2](https://github.com/julianbonomini/trueseal-docs/issues/17) **impl**: the Claude Code marketplace manifest and `npx skills add` support, tagged every TrueSeal Release.
+- [SKILLS-3](https://github.com/julianbonomini/trueseal-docs/issues/18) **test**: nine eval cases (G14), plus coverage by the reference-existence check (G11).
 
 ### All repos
 
-- ALL-1 **impl**: enable GitHub private vulnerability reporting, and add `SECURITY.md` (preview, best effort, no SLA, no bounty, fixes in the next 0.x, GitHub Security Advisories) ([threat model decision][t16]).
+- ALL-1 ([noise](https://github.com/julianbonomini/trueseal-noise/issues/24), [sync](https://github.com/julianbonomini/trueseal-sync/issues/92), [relay](https://github.com/julianbonomini/trueseal-relay/issues/28), [Swift](https://github.com/julianbonomini/trueseal-sync-swift/issues/1), [Kotlin](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/1), [TS](https://github.com/julianbonomini/trueseal-sync-ts/issues/7), [e2e](https://github.com/julianbonomini/trueseal-e2e/issues/4), [docs](https://github.com/julianbonomini/trueseal-docs/issues/19)) **impl**: enable GitHub private vulnerability reporting, and add `SECURITY.md` (preview, best effort, no SLA, no bounty, fixes in the next 0.x, GitHub Security Advisories) ([threat model decision][t16]).
 
 ### OPS (maintainer-only steps)
 
 These are the one-time checklist before 0.6.0 (G15). They need the maintainer's own accounts, and several are outward-facing.
-- OPS-1 **approval**: create the npm org `trueseal`, with 2FA.
-- OPS-2 **approval**: create a Central Portal account, add the DNS TXT record on `trueseal.dev`, and verify `dev.trueseal`.
-- OPS-3 **approval**: create a project GPG key, keep it offline, and add it as a secret on trueseal-sync-kotlin only.
-- OPS-4 **approval**: do the first publish of each package, then switch npm to trusted publishing.
-- OPS-5 **approval**: create the scoped GitHub App credential for the Release Conductor.
-- OPS-6 **approval**: delete the GHCR image `v1.0.0` left over from the deleted relay tag. Deleting remote data needs explicit approval.
+- [OPS-1](https://github.com/julianbonomini/trueseal-sync-ts/issues/8) **approval**: create the npm org `trueseal`, with 2FA.
+- [OPS-2](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/2) **approval**: create a Central Portal account, add the DNS TXT record on `trueseal.dev`, and verify `dev.trueseal`.
+- [OPS-3](https://github.com/julianbonomini/trueseal-sync-kotlin/issues/3) **approval**: create a project GPG key, keep it offline, and add it as a secret on trueseal-sync-kotlin only.
+- [OPS-4](https://github.com/julianbonomini/trueseal-e2e/issues/15) **approval**: do the first publish of each package, then switch npm to trusted publishing.
+- [OPS-5](https://github.com/julianbonomini/trueseal-e2e/issues/16) **approval**: create the scoped GitHub App credential for the Release Conductor.
+- [OPS-6](https://github.com/julianbonomini/trueseal-relay/issues/37) **approval**: delete the GHCR image `v1.0.0` left over from the deleted relay tag. Deleting remote data needs explicit approval.
 
 ## 9. Open items
 
