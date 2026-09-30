@@ -1,11 +1,10 @@
 # Developer Preview Release Spec
 
-Status: **draft, compiled 2026-09-30** from every closed decision on [Map: TrueSeal Developer Preview release][map] ([Task: compile the Developer Preview Release Spec][t27]). It adds no decisions of its own. Where decisions conflict, this spec links the open ticket and doesn't choose.
+Status: **draft, compiled 2026-09-30** from every closed decision on [Map: TrueSeal Developer Preview release][map] ([Task: compile the Developer Preview Release Spec][t27]). It adds no decisions of its own. Where decisions conflicted, the conflict went to a ticket, and the spec now follows its resolution.
 
 This document is an index. Each rule is stated once, briefly, with a link to the ADR that owns it. When this spec and an ADR disagree, the ADR wins, and this spec has a bug.
 
 Open before the spec is final:
-- [Decision: reconcile three conflicts between preview ADRs][t30] settles the items marked **(t30)** below.
 - [Task: file the spec's work list as issues in the owning repos][t29] links each work-list line to its issue.
 
 ## 1. What the preview is
@@ -64,8 +63,8 @@ Each line is a summary. The ADR holds the state machine, the crash points and th
 | Membership | Any member may admit, remove or leave. Manifests are parent-linked and ordered by (version, hash). A Pending Membership Change is re-applied automatically. `leave()` ships. Removal wipes and rotates the identity. Groups are capped at 32. | [sync ADR-0027][s27] |
 | SDK API | One `TrueSeal` shape in all three SDKs. Handlers rather than streams, one Relay Address string, and 13 shared error cases. The object outlives the group. | [sync ADR-0028][s28], [ADR-0032][s32] |
 | Destroy Group | Revoke goes through the outbox. A persisted Destroying state holds until the relay has accepted every Revoke. Receivers forward the Revoke. It is honoured from any past or present member. No rotation inside the session. | [sync ADR-0029][s29] |
-| Sealed Envelope | The relay reads only the End-to-End Version, the recipient key and the sealed payload. The signature, sequence and a sender timestamp move inside the ciphertext. A 60-day Replay Window means a message is never handled twice. **(t30)** for the TTL bound and timestamp timing. | [sync ADR-0031][s31] |
-| Stored data | Session State and the relay store carry a Store Version and migrate forward. A Store Reset needs approval and resets automatically with `storeReset`. A newer store is refused with `storeTooNew`. **(t30)** for whether `Sync` entries are purged or re-sealed on an End-to-End bump. | [sync ADR-0032][s32], [relay ADR-0013][r13] |
+| Sealed Envelope | The relay reads only the End-to-End Version, the recipient key and the sealed payload. The signature, sequence and a sender timestamp move inside the ciphertext. A 60-day Replay Window means a message is never handled twice. A `Sync` Sender Timestamp is fixed at `send()` and kept through re-seals; control messages are stamped at each seal and must be safe to replay. The relay TTL is capped at 30 days. Rejections report `unreadable` with a reason. | [sync ADR-0034][s34],  [sync ADR-0031][s31] |
+| Stored data | Session State and the relay store carry a Store Version and migrate forward. A Store Reset needs approval and resets automatically with `storeReset`. A newer store is refused with `storeTooNew`. An End-to-End bump re-seals every outbox entry, `Sync` included, so nothing queued is lost. | [sync ADR-0034][s34],  [sync ADR-0032][s32], [relay ADR-0013][r13] |
 | Relay operations | 25 s client heartbeat and relay deadlines. Quotas keyed per recipient. The relay never logs, stores or uses IPs, in any mode. No client metadata in logs outside dev mode. `/healthz` checks the store. Graceful shutdown. Fixed keypair setup. SQLite only. | [relay ADR-0012][r12] |
 | Agent onboarding | Human Docs and Agent Docs authored separately. Agent Docs are canonical and have their own `llms.txt`. Shared Facts are generated. A paste-in Agent Snippet. READMEs are quickstarts. | [docs ADR-0003][d3] |
 | Skills | Three workflow skills (Integrate, Pairing, Relay) in `trueseal-skills`, tagged with each TrueSeal Release. | [docs ADR-0005][d5] |
@@ -83,7 +82,7 @@ The canonical source is the Threat Model page that trueseal-docs must ship ([Dec
 - Standard wording: *end-to-end encrypted; the relay can't read or forge messages; here is exactly what it does see.*
 - IP wording ([relay ADR-0012][r12]): "The relay never logs, stores or uses your IP address. The server it runs on still sees the connection, as with any internet service. To hide your IP from the server too, use a VPN or Tor."
 
-**Claims:** confidentiality, integrity and authenticity, group authenticity at join, replay (depends on **(t30)**), delivery, sender privacy toward the relay, transport, relay operation, and removal and Destroy Group. The required evidence for each is in the claims table on [the threat model ticket][t16].
+**Claims:** confidentiality, integrity and authenticity, group authenticity at join, replay (Sender Timestamp and TTL cap per [sync ADR-0034][s34]), delivery, sender privacy toward the relay, transport, relay operation, and removal and Destroy Group. The required evidence for each is in the claims table on [the threat model ticket][t16].
 
 **Documented limitations:**
 - no end-to-end forward secrecy;
@@ -229,12 +228,12 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
   - the state table.
 
   It includes the unit tests listed in the ADR.
-- SYNC-12 **impl**: the Sealed Envelope and Replay Window ([sync ADR-0031][s31]) with the tests in its Consequences. It depends on **(t30)** for the timestamp timing.
-- SYNC-13 **impl**: Store Version, chained migrations, automatic Store Reset and `storeTooNew`, plus re-sealing outbox entries on an End-to-End bump ([sync ADR-0032][s32]). It depends on **(t30)** for `Sync` entries.
+- SYNC-12 **impl**: the Sealed Envelope and Replay Window ([sync ADR-0031][s31]) with the tests in its Consequences, plus the Sender Timestamp rule, control-message replay tests and `unreadable` reasons ([sync ADR-0034][s34]).
+- SYNC-13 **impl**: Store Version, chained migrations, automatic Store Reset and `storeTooNew`, plus re-sealing every outbox entry, `Sync` included, on an End-to-End bump ([sync ADR-0032][s32], [ADR-0034][s34]).
 - SYNC-14 **impl**: exclude the store from cloud and device backups on every platform, and delete outbox bodies once the relay accepts them ([threat model decision][t16], [sync ADR-0032][s32]).
 - SYNC-15 **impl**: reshape `ffi.rs` to the canonical API ([sync ADR-0028][s28]):
   - an async handler;
-  - event and issue callbacks;
+  - event and issue callbacks, with `unreadable(reason)` and no `undeliverableAfterUpgrade` ([ADR-0034][s34]);
   - 13 typed errors;
   - `close()`;
   - Relay Address parsing;
@@ -270,7 +269,7 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
 - RELAY-7 **impl**: send each Blob once per Receive Session, instead of re-sending the whole inbox on every notify (`router.go:100-135`). Fix the early-blob discard (`receive.go:80-87`) ([sync ADR-0026][s26]).
 - RELAY-8 **impl**:
   - refuse to start with a size limit above the protocol ceiling ([sync ADR-0025][s25]);
-  - refuse to start with a TTL above the maximum, where the bound is **(t30)**.
+  - refuse to start with a TTL above 30 days ([relay ADR-0012][r12], [sync ADR-0034][s34]).
 - RELAY-9 **impl**: normal and dev logging modes (`-dev`, `TRUESEAL_RELAY_DEV=1`), with dev mode shown in `/healthz` ([relay ADR-0012][r12]).
 - RELAY-10 **fix**:
   - make `/healthz` check the store and return 503 on failure (it always returns 200 today);
@@ -296,7 +295,7 @@ Each item is filed as an issue in its owning repo by [Task: file the spec's work
 ### trueseal-sync-swift, trueseal-sync-kotlin, trueseal-sync-ts
 
 Items shared by all three SDKs are filed once per SDK:
-- SDK-1 **impl**: move to the canonical API ([sync ADR-0028][s28]), including `destroying` ([ADR-0029][s29]) and `storeReset` and `storeTooNew` ([ADR-0032][s32]).
+- SDK-1 **impl**: move to the canonical API ([sync ADR-0028][s28]), including `destroying` ([ADR-0029][s29]) and `storeReset` and `storeTooNew` ([ADR-0032][s32]), and the Delivery Issue cases as amended by [ADR-0034][s34].
 - SDK-2 **test**: check the JSON test vectors through the bindings (G5).
 - SDK-3 **impl**: generate `TrueSeal.info`, `maxPayloadBytes` and `maxGroupSize` from the core ([sync ADR-0030][s30]).
 - SDK-4 **ci**:
@@ -399,11 +398,7 @@ These are the one-time checklist before 0.6.0 (G15). They need the maintainer's 
 
 ## 9. Open items
 
-| Item | Blocks | Ticket |
-|---|---|---|
-| Whether `Sync` entries are purged or re-sealed on an End-to-End bump | SYNC-13, and the `undeliverableAfterUpgrade` case in SDK-1 | [Decision: reconcile three conflicts between preview ADRs][t30] |
-| Relay TTL bound and sender timestamp timing | SYNC-12, RELAY-8, the replay claim | [Decision: reconcile three conflicts between preview ADRs][t30] |
-| Delivery Issue cases for "sender too old", unknown frame or tag, and the Replay Window | SDK-1, SYNC-15, G12 | [Decision: reconcile three conflicts between preview ADRs][t30] |
+None. [Decision: reconcile three conflicts between preview ADRs][t30] settled the last three ([sync ADR-0034][s34]).
 
 [map]: https://github.com/julianbonomini/trueseal-roadmap/issues/1
 [t4]: https://github.com/julianbonomini/trueseal-roadmap/issues/4
@@ -424,6 +419,7 @@ These are the one-time checklist before 0.6.0 (G15). They need the maintainer's 
 [s31]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0031-sealed-envelope-and-replay-window.md
 [s32]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0032-versioned-session-state-and-store-reset.md
 [s33]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0033-preview-lifecycle-and-1.0-criteria.md
+[s34]: https://github.com/julianbonomini/trueseal-sync/blob/main/docs/adr/0034-reconcile-upgrade-replay-and-rejection-rules.md
 [s90]: https://github.com/julianbonomini/trueseal-sync/issues/90
 [r12]: https://github.com/julianbonomini/trueseal-relay/blob/main/docs/adr/0012-self-hosted-preview-baseline.md
 [r13]: https://github.com/julianbonomini/trueseal-relay/blob/main/docs/adr/0013-versioned-inbox-store.md
