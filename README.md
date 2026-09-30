@@ -29,3 +29,4 @@ The Hush apps are example consumers. They are not in scope.
 ## Documents
 
 - [Baseline inventory, 2026-09-29](inventory/2026-09-29-baseline.md): what is implemented and tested across all eight repos.
+- [Developer Preview Release Spec](spec/developer-preview.md): what the first public release must do, its release gates, the version rules, and the work list by repo.
